@@ -15,6 +15,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SpendingsDataTransferer.Lib\SpendingsDataTransferer.Lib.csproj" />
+    <Content Include="TestFiles\**\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
