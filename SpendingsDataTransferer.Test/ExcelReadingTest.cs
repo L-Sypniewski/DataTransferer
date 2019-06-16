@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using FluentAssertions;
 using SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader;
@@ -21,6 +22,20 @@ namespace SpendingsDataTransferer.Test
             worksheets
                 .Should()
                 .HaveCount(expectedNumberOfWorksheets, $"the file contains {expectedNumberOfWorksheets} worksheets");
+        }
+
+        [Theory]
+        [InlineData(0, 1, 1, "Data")]
+        [InlineData(0, 4, 1, "10-25-2017 00:00")]
+        [InlineData(0, 10, 4, "18.78 zł")]
+        [InlineData(0, 1, 5, "")]
+        [InlineData(2, 8, 2, "Pizza Tornado")]
+        public void CellReadingStringDataTest(int worksheetIndex, int row, int column, string expectedCellValue)
+        {
+            var cellValue = worksheetReader.GetCellValue<string>(worksheetIndex, row, column);
+            cellValue
+                .Should()
+                .Be(expectedCellValue);
         }
     }
 }
