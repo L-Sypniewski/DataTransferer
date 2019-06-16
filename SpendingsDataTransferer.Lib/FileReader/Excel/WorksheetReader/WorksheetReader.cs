@@ -28,36 +28,56 @@ namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
             }
         }
 
-        public T GetCellValue<T>(int worksheetIndex, int rowIndex, int columnIndex)
+        public string GetCellText(ExcelCellCoordinates cellCoodrinates)
         {
             using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
-                ThrowErrorIfRowIsLesserThanZero(rowIndex);
-                ThrowErrorIfColumnIsLesserThanZero(columnIndex);
-
                 var worksheets = package.Workbook.Worksheets;
-                ThrowErrorIfTriedToReadNonExistentWorksheetIsLesserThanZero(worksheetIndex, worksheets.Count);
 
-                if (typeof(T) == typeof(string))
+                ThrowErrorIfCoorinatesAreIncorrect(cellCoodrinates, worksheets);
+
+                var worksheetIndex = cellCoodrinates.WorksheetIndex;
+                var rowIndex = cellCoodrinates.RowIndex;
+                var columnIndex = cellCoodrinates.ColumnIndex;
+
+                var cellValueAsDateTime = worksheets[worksheetIndex].GetValue<DateTime>(rowIndex, columnIndex);
+                if (cellValueAsDateTime != default(DateTime))
                 {
-                    var cell = worksheets[worksheetIndex].Cells[rowIndex, columnIndex];
-                    return GetStringValueOfCell<T>(cell);
+                    return cellValueAsDateTime.ToString(dateTimeFormat);
                 }
-                
-                return worksheets[worksheetIndex].GetValue<T>(rowIndex, columnIndex);
+
+                var cell = worksheets[worksheetIndex].Cells[rowIndex, columnIndex];
+                return cell.Text;
             }
         }
 
-        private T GetStringValueOfCell<T>(ExcelRange cell)
+        public DateTime GetCellDateTime(ExcelCellCoordinates cellCoodrinates)
         {
-            var cellValue = cell.Value;
-
-            if (cellValue is DateTime)
+            using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
-                return (T) (object) ((DateTime) cellValue).ToString(dateTimeFormat);
-            }
+                var worksheets = package.Workbook.Worksheets;
 
-            return (T) (object) cell.Text;
+                ThrowErrorIfCoorinatesAreIncorrect(cellCoodrinates, worksheets);
+
+                var worksheetIndex = cellCoodrinates.WorksheetIndex;
+                var rowIndex = cellCoodrinates.RowIndex;
+                var columnIndex = cellCoodrinates.ColumnIndex;
+
+                var cellValueAsDateTime = worksheets[worksheetIndex].GetValue<DateTime>(rowIndex, columnIndex);
+                if (cellValueAsDateTime != default(DateTime))
+                {
+                    return cellValueAsDateTime;
+                }
+
+                throw new WorksheetReaderCellValueTypeException(cellCoodrinates, typeof(DateTime));
+            }
+        }
+
+        private void ThrowErrorIfCoorinatesAreIncorrect(ExcelCellCoordinates cellCoodrinates, ExcelWorksheets worksheets)
+        {
+            ThrowErrorIfRowIsLesserThanZero(cellCoodrinates.RowIndex);
+            ThrowErrorIfColumnIsLesserThanZero(cellCoodrinates.ColumnIndex);
+            ThrowErrorIfTriedToReadNonExistentWorksheetIsLesserThanZero(cellCoodrinates.WorksheetIndex, worksheets.Count);
         }
 
         private void ThrowErrorIfTriedToReadNonExistentWorksheetIsLesserThanZero(int worksheetIndex, int worksheetCount)
@@ -77,6 +97,14 @@ namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
         {
             if (columnIndex < 1)
                 throw new WorksheetReaderColumnLesserThanOneException($"{columnIndex}");
+        }
+
+        private void ThrowExceptionIfDateTimeWasMappedToDefaultValue(DateTime cellValue, ExcelCellCoordinates cellCoodrinates)
+        {
+            if (cellValue == default(DateTime))
+            {
+                throw new WorksheetReaderCellValueTypeException(cellCoodrinates, typeof(DateTime));
+            }
         }
     }
 }

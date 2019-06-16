@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SpendingsDataTransferer.Lib.ApplicationModel.Excel;
 
@@ -7,6 +8,7 @@ namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
     {
         IEnumerable<Worksheet> Worksheets { get; }
 
-        T GetCellValue<T>(int worksheetIndex, int row, int column);
+        string GetCellText(ExcelCellCoordinates cellCoordinates);
+        DateTime GetCellDateTime(ExcelCellCoordinates cellCoordinates);
     }
 }
