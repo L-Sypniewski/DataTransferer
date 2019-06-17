@@ -20,7 +20,7 @@ namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
         {
             get
             {
-                using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+                using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
                 {
                     return package.Workbook.Worksheets
                         .Select(worksheet => new Worksheet(worksheet.Name)).ToArray();
@@ -30,7 +30,7 @@ namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
 
         public string GetCellText(ExcelCellCoordinates cellCoodrinates)
         {
-            using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+            using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
                 var worksheets = package.Workbook.Worksheets;
 
@@ -53,7 +53,7 @@ namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
 
         public DateTime GetCellDateTime(ExcelCellCoordinates cellCoodrinates)
         {
-            using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+            using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
                 var worksheets = package.Workbook.Worksheets;
 
@@ -63,13 +63,21 @@ namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
                 var rowIndex = cellCoodrinates.RowIndex;
                 var columnIndex = cellCoodrinates.ColumnIndex;
 
-                var cellValueAsDateTime = worksheets[worksheetIndex].GetValue<DateTime>(rowIndex, columnIndex);
-                if (cellValueAsDateTime != default(DateTime))
+                try
                 {
-                    return cellValueAsDateTime;
-                }
+                    var cellValueAsDateTime = worksheets[worksheetIndex].GetValue<DateTime>(rowIndex, columnIndex);
 
-                throw new WorksheetReaderCellValueTypeException(cellCoodrinates, typeof(DateTime));
+                    if (cellValueAsDateTime != default(DateTime))
+                    {
+                        return cellValueAsDateTime;
+                    }
+
+                    throw new WorksheetReaderCellValueTypeException(cellCoodrinates, typeof(DateTime));
+                }
+                catch (FormatException e)
+                {
+                    throw new WorksheetReaderCellValueTypeException(cellCoodrinates, typeof(DateTime), e);
+                }
             }
         }
 

@@ -1,14 +1,14 @@
 using System.Collections.Generic;
-using SpendingsDataTransferer.Lib.FileReader.Excel.ExcelDataParser;
+using SpendingsDataTransferer.Lib.FileReader.DataParser;
 
 namespace SpendingsDataTransferer.Lib.FileReader.Excel
 {
     public class ExcelFileReader<T> : IFileReader<T>
     {
         private readonly string filename;
-        private readonly IExcelDataParser<T> dataParser;
+        private readonly IDataParser<T> dataParser;
 
-        public ExcelFileReader(string filename, IExcelDataParser<T> dataParser)
+        public ExcelFileReader(string filename, IDataParser<T> dataParser)
         {
             this.filename = filename;
             this.dataParser = dataParser;
