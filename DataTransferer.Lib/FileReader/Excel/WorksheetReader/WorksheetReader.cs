@@ -9,7 +9,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 {
     public class WorksheetReader : IWorksheetReader
     {
-        private const string dateTimeFormat = "MM-dd-yyyy HH:mm";
+        private const string dateTimeFormat = "dd-MM-yyyy HH:mm";
         private readonly FileInfo existingSpreadsheet;
         public WorksheetReader(string filename)
         {
@@ -40,15 +40,37 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
                 var rowIndex = cellCoodrinates.RowIndex;
                 var columnIndex = cellCoodrinates.ColumnIndex;
 
-                var cellValueAsDateTime = worksheets[worksheetIndex].GetValue<DateTime>(rowIndex, columnIndex);
-                if (cellValueAsDateTime != default(DateTime))
+                var cell = worksheets[worksheetIndex].Cells[rowIndex, columnIndex];
+
+                if (cell.Style.Numberformat.Format != "general")
                 {
-                    return cellValueAsDateTime.ToString(dateTimeFormat);
+                    return cell.Text;
                 }
 
-                var cell = worksheets[worksheetIndex].Cells[rowIndex, columnIndex];
+                try
+                {
+                    return GetDateTimeAsTypeFromCell<String>(worksheets, cellCoodrinates,
+                                                             cellValueAsDateTime => cellValueAsDateTime.ToString(dateTimeFormat));
+                }
+                catch { }
+
                 return cell.Text;
             }
+        }
+
+        private T GetDateTimeAsTypeFromCell<T>(ExcelWorksheets worksheets,
+                                               ExcelCellCoordinates cellCoordinates,
+                                               Func<DateTime, T> funcReturningDateTimeAsType)
+        {
+            var cellValueAsDateTime = worksheets[cellCoordinates.WorksheetIndex].GetValue<DateTime>(
+                cellCoordinates.RowIndex, cellCoordinates.ColumnIndex);
+
+            if (cellValueAsDateTime != default(DateTime))
+            {
+                return funcReturningDateTimeAsType(cellValueAsDateTime);
+            }
+
+            throw new WorksheetReaderCellValueTypeException(cellCoordinates, typeof(DateTime));
         }
 
         public DateTime GetCellDateTime(ExcelCellCoordinates cellCoodrinates)
@@ -65,14 +87,8 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
                 try
                 {
-                    var cellValueAsDateTime = worksheets[worksheetIndex].GetValue<DateTime>(rowIndex, columnIndex);
-
-                    if (cellValueAsDateTime != default(DateTime))
-                    {
-                        return cellValueAsDateTime;
-                    }
-
-                    throw new WorksheetReaderCellValueTypeException(cellCoodrinates, typeof(DateTime));
+                    return GetDateTimeAsTypeFromCell<DateTime>(worksheets, cellCoodrinates,
+                                                     cellValueAsDateTime => cellValueAsDateTime);
                 }
                 catch (FormatException e)
                 {

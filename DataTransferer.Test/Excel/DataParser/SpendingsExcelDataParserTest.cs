@@ -22,7 +22,7 @@ namespace DataTransferer.Test
         public void CheckNumberOfSpendings()
         {
             var spednings = excelSpendingDataParser.ParseData();
-            var expectedSpendingsCount = 21;
+            var expectedSpendingsCount = 19;
 
             spednings
             .Should()

@@ -27,10 +27,13 @@ namespace DataTransferer.Test
 
         [Theory]
         [InlineData(0, 1, 1, "Data")]
-        [InlineData(0, 4, 1, "10-25-2017 00:00")]
-        [InlineData(0, 10, 4, "18.78 zł")]
-        [InlineData(0, 1, 5, "")]
-        [InlineData(2, 8, 2, "Pizza Tornado")]
+        [InlineData(1, 4, 1, "05-12-2017 00:00")]
+        [InlineData(1, 19, 1, "30-12-2017 00:00")]
+        [InlineData(1, 20, 1, "")]
+        [InlineData(0, 3, 4, "119.95 zł")]
+        [InlineData(0, 8, 5, "")]
+        [InlineData(2, 5, 2, "Bilet miesięczny")]
+        [InlineData(2, 11, 3, "Fast food")]
         public void CellReadingStringDataTest(int worksheetIndex, int rowIndex, int columnIndex, string expectedCellValue)
         {
             var celCoordinates = new ExcelCellCoordinates(worksheetIndex, rowIndex, columnIndex);

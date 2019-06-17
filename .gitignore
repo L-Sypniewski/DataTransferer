@@ -355,5 +355,6 @@ healthchecksdb
 MigrationBackup/
 
 .vscode/
-*.xlsx
 *.code-workspace
+.directory
+.~*.xlsx
