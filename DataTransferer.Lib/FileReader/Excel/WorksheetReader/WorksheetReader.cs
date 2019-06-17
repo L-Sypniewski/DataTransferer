@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using OfficeOpenXml;
-using SpendingsDataTransferer.Lib.ApplicationModel.Excel;
+using DataTransferer.Lib.ApplicationModel.Excel;
 
-namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
+namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 {
     public class WorksheetReader : IWorksheetReader
     {

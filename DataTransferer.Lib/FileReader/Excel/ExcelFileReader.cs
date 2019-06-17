@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using SpendingsDataTransferer.Lib.FileReader.DataParser;
+using DataTransferer.Lib.FileReader.DataParser;
 
-namespace SpendingsDataTransferer.Lib.FileReader.Excel
+namespace DataTransferer.Lib.FileReader.Excel
 {
     public class ExcelFileReader<T> : IFileReader<T>
     {

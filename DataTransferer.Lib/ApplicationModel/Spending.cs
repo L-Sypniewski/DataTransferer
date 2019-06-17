@@ -1,6 +1,6 @@
 using System;
 
-namespace SpendingsDataTransferer.Lib.ApplicationModel
+namespace DataTransferer.Lib.ApplicationModel
 {
     public struct Spending
     {

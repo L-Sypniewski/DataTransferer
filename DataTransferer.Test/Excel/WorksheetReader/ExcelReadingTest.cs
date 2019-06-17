@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using FluentAssertions;
-using SpendingsDataTransferer.Lib.ApplicationModel.Excel;
-using SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader;
+using DataTransferer.Lib.ApplicationModel.Excel;
+using DataTransferer.Lib.FileReader.Excel.WorksheetReader;
 using Xunit;
 
-namespace SpendingsDataTransferer.Test
+namespace DataTransferer.Test
 {
     public class ExcelReadingTest
     {

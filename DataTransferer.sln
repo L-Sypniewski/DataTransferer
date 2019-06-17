@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpendingsDataTransferer.Lib", "SpendingsDataTransferer.Lib\SpendingsDataTransferer.Lib.csproj", "{8AACAF46-23ED-493A-8B6E-D4DC20390FB3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataTransferer.Lib", "DataTransferer.Lib\DataTransferer.Lib.csproj", "{8AACAF46-23ED-493A-8B6E-D4DC20390FB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpendingsDataTransferer.Test", "SpendingsDataTransferer.Test\SpendingsDataTransferer.Test.csproj", "{0368F8B0-89A3-4113-9AB7-225804ADE5F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataTransferer.Test", "DataTransferer.Test\DataTransferer.Test.csproj", "{0368F8B0-89A3-4113-9AB7-225804ADE5F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpendingsDataTransferer.App", "SpendingsDataTransferer.App\SpendingsDataTransferer.App.csproj", "{DA96C072-48A9-4372-977B-664CEE73E897}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataTransferer.App", "DataTransferer.App\DataTransferer.App.csproj", "{DA96C072-48A9-4372-977B-664CEE73E897}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

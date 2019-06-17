@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.Serialization;
-using SpendingsDataTransferer.Lib.ApplicationModel.Excel;
+using DataTransferer.Lib.ApplicationModel.Excel;
 
-namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
+namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 {
     [Serializable]
     public class WorksheetReaderNonExistingWorksheetException : Exception
@@ -48,11 +48,13 @@ namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
             $"row index: {cellCoordinates.RowIndex}, column index {cellCoordinates.ColumnIndex}\n" +
             $"Expected type of cell's value: {expectedType}";
         public WorksheetReaderCellValueTypeException() { }
-        public WorksheetReaderCellValueTypeException(ExcelCellCoordinates cellCoordinates, Type expectedType):
-            base(exceptionSpecificMessage(cellCoordinates, expectedType)) { }
+        public WorksheetReaderCellValueTypeException(ExcelCellCoordinates cellCoordinates, Type expectedType) :
+            base(exceptionSpecificMessage(cellCoordinates, expectedType))
+        { }
         public WorksheetReaderCellValueTypeException(
-                ExcelCellCoordinates cellCoordinates, Type expectedType, Exception inner):
-            base(exceptionSpecificMessage(cellCoordinates, expectedType), inner) { }
+                ExcelCellCoordinates cellCoordinates, Type expectedType, Exception inner) :
+            base(exceptionSpecificMessage(cellCoordinates, expectedType), inner)
+        { }
         protected WorksheetReaderCellValueTypeException(
             SerializationInfo info,
             StreamingContext context) : base(info, context) { }

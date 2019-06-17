@@ -1,4 +1,4 @@
-namespace SpendingsDataTransferer.Lib.ApplicationModel.Excel
+namespace DataTransferer.Lib.ApplicationModel.Excel
 {
     public struct ExcelCellCoordinates
     {

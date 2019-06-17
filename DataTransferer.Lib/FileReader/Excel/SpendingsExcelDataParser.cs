@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using SpendingsDataTransferer.Lib.ApplicationModel;
-using SpendingsDataTransferer.Lib.ApplicationModel.Excel;
-using SpendingsDataTransferer.Lib.FileReader.DataParser;
-using SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader;
+using DataTransferer.Lib.ApplicationModel;
+using DataTransferer.Lib.ApplicationModel.Excel;
+using DataTransferer.Lib.FileReader.DataParser;
+using DataTransferer.Lib.FileReader.Excel.WorksheetReader;
 using System.Linq;
 using System;
 
-namespace SpendingsDataTransferer.Lib.FileReader.Excel.ExcelDataParser
+namespace DataTransferer.Lib.FileReader.Excel.ExcelDataParser
 {
     public class SpendingsExcelDataParser : IDataParser<Spending>
     {

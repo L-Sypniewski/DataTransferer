@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using SpendingsDataTransferer.Lib.ApplicationModel.Excel;
+using DataTransferer.Lib.ApplicationModel.Excel;
 
-namespace SpendingsDataTransferer.Lib.FileReader.Excel.WorksheetReader
+namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 {
     public interface IWorksheetReader
     {
