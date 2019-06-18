@@ -8,6 +8,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
     public class WorksheetReaderNonExistingWorksheetException : Exception
     {
         private static string exceptionSpecificMessage(string index) => $"There is no worksheet at index: {index}";
+
         public WorksheetReaderNonExistingWorksheetException() { }
         public WorksheetReaderNonExistingWorksheetException(string index) : base(exceptionSpecificMessage(index)) { }
         public WorksheetReaderNonExistingWorksheetException(
@@ -20,6 +21,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
     public class WorksheetReaderColumnLesserThanOneException : Exception
     {
         private static string exceptionSpecificMessage(string index) => $"WorksheetReader tried to read column at index: {index}";
+
         public WorksheetReaderColumnLesserThanOneException() { }
         public WorksheetReaderColumnLesserThanOneException(string index) : base(exceptionSpecificMessage(index)) { }
         public WorksheetReaderColumnLesserThanOneException(
@@ -32,6 +34,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
     public class WorksheetReaderRowLesserThanOneException : Exception
     {
         private static string exceptionSpecificMessage(string index) => $"WorksheetReader tried to read row at index: {index}";
+        
         public WorksheetReaderRowLesserThanOneException() { }
         public WorksheetReaderRowLesserThanOneException(string index) : base(exceptionSpecificMessage(index)) { }
         public WorksheetReaderRowLesserThanOneException(
@@ -43,18 +46,18 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
     public class WorksheetReaderCellValueTypeException : Exception
     {
-        private static string exceptionSpecificMessage(ExcelCellCoordinates cellCoordinates, Type expectedType) =>
+        private static string exceptionSpecificMessage(string cellText, ExcelCellCoordinates cellCoordinates, Type expectedType) =>
             $"WorksheetReader tried to read row form worksheet index: {cellCoordinates.WorksheetIndex}, " +
             $"row index: {cellCoordinates.RowIndex}, column index {cellCoordinates.ColumnIndex}\n" +
-            $"Expected type of cell's value: {expectedType}";
+            $"Expected type of cell's value: {expectedType}\n" +
+            $"Cell's text: {cellText}";
+
         public WorksheetReaderCellValueTypeException() { }
-        public WorksheetReaderCellValueTypeException(ExcelCellCoordinates cellCoordinates, Type expectedType) :
-            base(exceptionSpecificMessage(cellCoordinates, expectedType))
-        { }
+        public WorksheetReaderCellValueTypeException(string cellText, ExcelCellCoordinates cellCoordinates, Type expectedType):
+            base(exceptionSpecificMessage(cellText, cellCoordinates, expectedType)) { }
         public WorksheetReaderCellValueTypeException(
-                ExcelCellCoordinates cellCoordinates, Type expectedType, Exception inner) :
-            base(exceptionSpecificMessage(cellCoordinates, expectedType), inner)
-        { }
+                string cellText, ExcelCellCoordinates cellCoordinates, Type expectedType, Exception inner):
+            base(exceptionSpecificMessage(cellText, cellCoordinates, expectedType), inner) { }
         protected WorksheetReaderCellValueTypeException(
             SerializationInfo info,
             StreamingContext context) : base(info, context) { }
