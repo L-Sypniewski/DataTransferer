@@ -33,11 +33,45 @@ namespace DataTransferer.Test
         {
             var coordinates = new ExcelCellCoordinates(worksheetIndex: 1, rowIndex: rowIndex, columnIndex: 1);
 
-            Action act = () => worksheetReader.GetCellText(coordinates);
-            act
+            Action getCellTextAction = () => worksheetReader.GetCellText(coordinates);
+            getCellTextAction
             .Should()
             .ThrowExactly<WorksheetReaderRowLesserThanOneException>("row index must be larger than or equal 1")
             .WithMessage($"WorksheetReader tried to read row at index: {rowIndex}");
+
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(-10)]
+        public void TryingToGetCellTextFromIncorrectColumnIndexThrowsError(int columnIndex)
+        {
+            var coordinates = new ExcelCellCoordinates(worksheetIndex: 1, rowIndex: 1, columnIndex: columnIndex);
+
+            Action getCellTextAction = () => worksheetReader.GetCellText(coordinates);
+            getCellTextAction
+            .Should()
+            .ThrowExactly<WorksheetReaderColumnLesserThanOneException>("column index must be larger than or equal 1")
+            .WithMessage($"WorksheetReader tried to read column at index: {columnIndex}");
+
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(-10)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [InlineData(10)]
+        public void TryingToGetCellTextFromNonExistingWorksheetThrowsError(int worksheetIndex)
+        {
+            var coordinates = new ExcelCellCoordinates(worksheetIndex: worksheetIndex, rowIndex: 1, columnIndex: 1);
+
+            Action getCellTextAction = () => worksheetReader.GetCellText(coordinates);
+            getCellTextAction
+            .Should()
+            .ThrowExactly<WorksheetReaderNonExistingWorksheetException>("worksheet index cannot be less than zero or higher than worksheets count")
+            .WithMessage($"There is no worksheet at index: {worksheetIndex}");
 
         }
 

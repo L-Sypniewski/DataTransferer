@@ -102,7 +102,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
         private void ThrowErrorIfTriedToReadNonExistentWorksheet(int worksheetIndex, int worksheetCount)
         {
-            if (worksheetIndex > worksheetCount ||
+            if (worksheetIndex >= worksheetCount ||
                 worksheetIndex < 0)
                 throw new WorksheetReaderNonExistingWorksheetException($"{worksheetIndex}");
         }
