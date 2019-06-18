@@ -18,12 +18,20 @@ namespace DataTransferer.Test
         {
             var worksheets = worksheetReader.Worksheets.ToList();
             var worksheetsCount = worksheets.Count();
-            var expectedNumberOfWorksheets = 21;
+            var expectedNumberOfWorksheets = 3;
 
             worksheets
                 .Should()
                 .HaveCount(expectedNumberOfWorksheets, $"the file contains {expectedNumberOfWorksheets} worksheets");
         }
+
+        // [Theory]
+        // [InlineData(0)]
+        // [InlineData(1)]
+        // [InlineData(-1)]
+        // public void ReadingIncorrectRowIndexThrowsError() {
+        //     worksheetReader.GetCellText
+        // }
 
         [Theory]
         [InlineData(0, 1, 1, "Data")]

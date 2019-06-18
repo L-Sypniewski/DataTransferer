@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using OfficeOpenXml;
 using DataTransferer.Lib.ApplicationModel.Excel;
+using OfficeOpenXml;
 
 namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 {
@@ -20,27 +20,21 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
         {
             get
             {
-                using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+                using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
                 {
                     return package.Workbook.Worksheets
-                        .Select(worksheet => new Worksheet(worksheet.Name)).ToArray();
+                        .Select(worksheet => new Worksheet(worksheet.Name))
+                        .ToArray();
                 }
             }
         }
 
         public string GetCellText(ExcelCellCoordinates cellCoodrinates)
         {
-            using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+            using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
                 var worksheets = package.Workbook.Worksheets;
-
-                ThrowErrorIfCoorinatesAreIncorrect(cellCoodrinates, worksheets);
-
-                var worksheetIndex = cellCoodrinates.WorksheetIndex;
-                var rowIndex = cellCoodrinates.RowIndex;
-                var columnIndex = cellCoodrinates.ColumnIndex;
-
-                var cell = worksheets[worksheetIndex].Cells[rowIndex, columnIndex];
+                var cell = GetCellAtCoordinatesFrom(worksheets, cellCoodrinates);
 
                 if (cell.Style.Numberformat.Format != "general")
                 {
@@ -49,8 +43,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
                 try
                 {
-                    return GetDateTimeAsTypeFromCell<String>(worksheets, cellCoodrinates,
-                                                             cellValueAsDateTime => cellValueAsDateTime.ToString(dateTimeFormat));
+                    return GetDateTimeAsTypeFromCell<String>(cell, cellValueAsDateTime => cellValueAsDateTime.ToString(dateTimeFormat));
                 }
                 catch { }
 
@@ -58,37 +51,40 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
             }
         }
 
-        private T GetDateTimeAsTypeFromCell<T>(ExcelWorksheets worksheets,
-                                               ExcelCellCoordinates cellCoordinates,
-                                               Func<DateTime, T> funcReturningDateTimeAsType)
+        private ExcelRange GetCellAtCoordinatesFrom(ExcelWorksheets worksheets, ExcelCellCoordinates cellCoodrinates)
         {
-            var cellValueAsDateTime = worksheets[cellCoordinates.WorksheetIndex].GetValue<DateTime>(
-                cellCoordinates.RowIndex, cellCoordinates.ColumnIndex);
+            ThrowErrorIfCoorinatesAreIncorrect(cellCoodrinates, worksheets);
+
+            var worksheetIndex = cellCoodrinates.WorksheetIndex;
+            var rowIndex = cellCoodrinates.RowIndex;
+            var columnIndex = cellCoodrinates.ColumnIndex;
+
+            var cellAtCoordinates = worksheets[worksheetIndex].Cells[rowIndex, columnIndex];
+            return cellAtCoordinates;
+        }
+
+        private T GetDateTimeAsTypeFromCell<T>(ExcelRange cell, Func<DateTime, T> funcReturningDateTimeAsType)
+        {
+            var cellValueAsDateTime = cell.GetValue<DateTime>();
 
             if (cellValueAsDateTime != default(DateTime))
             {
                 return funcReturningDateTimeAsType(cellValueAsDateTime);
             }
-
+            var cellCoordinates = new ExcelCellCoordinates(cell.Worksheet.Index, cell.Rows, cell.Columns);
             throw new WorksheetReaderCellValueTypeException(cellCoordinates, typeof(DateTime));
         }
 
         public DateTime GetCellDateTime(ExcelCellCoordinates cellCoodrinates)
         {
-            using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+            using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
                 var worksheets = package.Workbook.Worksheets;
-
-                ThrowErrorIfCoorinatesAreIncorrect(cellCoodrinates, worksheets);
-
-                var worksheetIndex = cellCoodrinates.WorksheetIndex;
-                var rowIndex = cellCoodrinates.RowIndex;
-                var columnIndex = cellCoodrinates.ColumnIndex;
+                var cell = GetCellAtCoordinatesFrom(worksheets, cellCoodrinates);
 
                 try
                 {
-                    return GetDateTimeAsTypeFromCell<DateTime>(worksheets, cellCoodrinates,
-                                                     cellValueAsDateTime => cellValueAsDateTime);
+                    return GetDateTimeAsTypeFromCell<DateTime>(cell, cellValueAsDateTime => cellValueAsDateTime);
                 }
                 catch (FormatException e)
                 {
@@ -101,10 +97,10 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
         {
             ThrowErrorIfRowIsLesserThanZero(cellCoodrinates.RowIndex);
             ThrowErrorIfColumnIsLesserThanZero(cellCoodrinates.ColumnIndex);
-            ThrowErrorIfTriedToReadNonExistentWorksheetIsLesserThanZero(cellCoodrinates.WorksheetIndex, worksheets.Count);
+            ThrowErrorIfTriedToReadNonExistentWorksheet(cellCoodrinates.WorksheetIndex, worksheets.Count);
         }
 
-        private void ThrowErrorIfTriedToReadNonExistentWorksheetIsLesserThanZero(int worksheetIndex, int worksheetCount)
+        private void ThrowErrorIfTriedToReadNonExistentWorksheet(int worksheetIndex, int worksheetCount)
         {
             if (worksheetIndex > worksheetCount ||
                 worksheetIndex < 0)
