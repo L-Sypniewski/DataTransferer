@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
-using FluentAssertions;
 using DataTransferer.Lib.ApplicationModel.Excel;
 using DataTransferer.Lib.FileReader.Excel.WorksheetReader;
+using FluentAssertions;
 using Xunit;
 
 namespace DataTransferer.Test
@@ -25,13 +25,21 @@ namespace DataTransferer.Test
                 .HaveCount(expectedNumberOfWorksheets, $"the file contains {expectedNumberOfWorksheets} worksheets");
         }
 
-        // [Theory]
-        // [InlineData(0)]
-        // [InlineData(1)]
-        // [InlineData(-1)]
-        // public void ReadingIncorrectRowIndexThrowsError() {
-        //     worksheetReader.GetCellText
-        // }
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(-10)]
+        public void TryingToGetCellTextFromIncorrectRowIndexThrowsError(int rowIndex)
+        {
+            var coordinates = new ExcelCellCoordinates(worksheetIndex: 1, rowIndex: rowIndex, columnIndex: 1);
+
+            Action act = () => worksheetReader.GetCellText(coordinates);
+            act
+            .Should()
+            .ThrowExactly<WorksheetReaderRowLesserThanOneException>("row index must be larger than or equal 1")
+            .WithMessage($"WorksheetReader tried to read row at index: {rowIndex}");
+
+        }
 
         [Theory]
         [InlineData(0, 1, 1, "Data")]
