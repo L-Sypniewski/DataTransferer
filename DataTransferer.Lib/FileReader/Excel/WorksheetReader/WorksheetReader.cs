@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using DataTransferer.Lib.ApplicationModel.Excel;
 using OfficeOpenXml;
+using System.Text.RegularExpressions;
 
 namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 {
@@ -22,7 +23,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
         {
             get
             {
-                using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+                using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
                 {
                     return package.Workbook.Worksheets
                         .Select(worksheet => new Worksheet(worksheet.Name))
@@ -33,7 +34,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
         public string GetCellText(ExcelCellCoordinates cellCoodrinates)
         {
-            using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+            using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
                 var worksheets = package.Workbook.Worksheets;
                 var cell = GetCellAtCoordinatesFrom(worksheets, cellCoodrinates);
@@ -48,22 +49,75 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
             }
         }
 
-        public bool IsCellContainDateTime(ExcelCellCoordinates coordinates)
+        public bool IsCellContainDateTime(ExcelCellCoordinates coordinates, CultureInfo cultureInfo)
         {
-            using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+            using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
-                var cell = package.Workbook.Worksheets[coordinates.WorksheetIndex].Cells[coordinates.RowIndex, coordinates.ColumnIndex];
+                int worksheetIndex = coordinates.WorksheetIndex;
+                int rowIndex = coordinates.RowIndex;
+                int columnIndex = coordinates.ColumnIndex;
+                var cell = package.Workbook.Worksheets[worksheetIndex].Cells[rowIndex, columnIndex];
 
-                var datetimeString = cell.GetValue<string>();
+                var cellStringValue = cell.GetValue<string>();
+                var cellText = cell.Text;
 
-                var regex = new RegEgc
-                var datetime = cell.GetValue<DateTime>();
+                if (cellStringValue == null && cellText == "")
+                {
+                    return false;
+                }
 
-                var isCellContainDateTime = DateTime.TryParse(datetimeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out DateTime date);
+                cellStringValue = cellStringValue.Replace(".", "");
+                cellText = cellText.Replace(".", "");
 
-                return isCellContainDateTime;
+                try
+                {
+                    var cellDateTimeValue = cell.GetValue<DateTime>();
+
+                    if (cellStringValue == cellText)
+                    {
+                        return true;
+                    }
+
+                    var isCellStringValueOfDateTimeType = DateTime.TryParse(
+                        cellStringValue,
+                        cultureInfo,
+                        DateTimeStyles.AssumeLocal,
+                        out DateTime datetimeStringValueParsedData);
+
+                    var isCellTextOfDateTimeType = DateTime.TryParse(
+                        cellText,
+                        cultureInfo,
+                        DateTimeStyles.AssumeLocal,
+                        out DateTime datetimeTextParsedData);
+
+
+                    bool cellValueAndCellTextAreNotDateTimeType = isCellStringValueOfDateTimeType == false &&
+                                                                  isCellTextOfDateTimeType == false;
+                    if (cellValueAndCellTextAreNotDateTimeType)
+                    {
+                        return false;
+                    }
+
+                    if ((cellStringValue.All(char.IsDigit) && datetimeTextParsedData == cellDateTimeValue) ||
+                        bothDatesHaveSameYearMonthAndDay(datetimeTextParsedData, cellDateTimeValue))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+                catch
+                {
+                    return false;
+                }
             }
+        }
 
+        private bool bothDatesHaveSameYearMonthAndDay(DateTime date1, DateTime date2)
+        {
+            return date1.Year == date2.Year &&
+                   date1.Month == date2.Month &&
+                   date1.Day == date2.Day;
         }
 
         private ExcelRange GetCellAtCoordinatesFrom(ExcelWorksheets worksheets, ExcelCellCoordinates cellCoodrinates)
@@ -85,7 +139,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
         public DateTime GetCellDateTime(ExcelCellCoordinates cellCoodrinates)
         {
-            using(ExcelPackage package = new ExcelPackage(existingSpreadsheet))
+            using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
                 var worksheets = package.Workbook.Worksheets;
                 var cell = GetCellAtCoordinatesFrom(worksheets, cellCoodrinates);

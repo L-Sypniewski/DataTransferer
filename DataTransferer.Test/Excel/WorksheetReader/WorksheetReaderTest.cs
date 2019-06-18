@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using DataTransferer.Lib.ApplicationModel.Excel;
 using DataTransferer.Lib.FileReader.Excel.WorksheetReader;
@@ -147,8 +148,8 @@ namespace DataTransferer.Test
                 foreach (var func in getCellDataFuncs)
                 {
                     yield return new object[] { 0, func };
-                    yield return new object[] {-1, func };
-                    yield return new object[] {-10, func };
+                    yield return new object[] { -1, func };
+                    yield return new object[] { -10, func };
                 }
             }
         }
@@ -171,8 +172,8 @@ namespace DataTransferer.Test
 
                 foreach (var func in getCellDataFuncs)
                 {
-                    yield return new object[] {-10, func };
-                    yield return new object[] {-1, func };
+                    yield return new object[] { -10, func };
+                    yield return new object[] { -1, func };
                     yield return new object[] { 3, func };
                     yield return new object[] { 4, func };
                     yield return new object[] { 10, func };
@@ -198,20 +199,25 @@ namespace DataTransferer.Test
         }
 
         [Theory]
-        // [InlineData(0, 4, 1, true)]
-        // [InlineData(0, 13, 1, true)]
+        [InlineData(0, 4, 1, true)]
+        [InlineData(0, 11, 1, false)]
+        [InlineData(0, 13, 1, true)]
         [InlineData(0, 17, 1, true)]
-        // [InlineData(0, 19, 1, true)]
-        // [InlineData(0, 5, 1, false)]
-        // [InlineData(0, 1, 2, false)]
-        // [InlineData(0, 4, 2, false)]
-        public void isCellDateTimeTest(int worksheetIndex, int rowIndex, int columnIndex, bool expectedResult)
+        [InlineData(0, 19, 1, true)]
+        [InlineData(0, 5, 1, false)]
+        [InlineData(0, 1, 2, false)]
+        [InlineData(0, 4, 2, false)]
+        [InlineData(0, 2, 4, false)]
+        public void IsCellDateTimeTest(int worksheetIndex, int rowIndex, int columnIndex, bool expectedResult)
         {
             var reader = new WorksheetReader(filepath);
-            var result = reader.IsCellContainDateTime(new ExcelCellCoordinates(worksheetIndex, rowIndex, columnIndex));
+            var result = reader.IsCellContainDateTime(
+                 new ExcelCellCoordinates(worksheetIndex, rowIndex, columnIndex),
+                 new CultureInfo("en-GB"));
 
-            result.Should().Be(expectedResult);
-
+            result
+            .Should()
+            .Be(expectedResult);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using DataTransferer.Lib.ApplicationModel.Excel;
 
 namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
@@ -10,5 +11,6 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
         string GetCellText(ExcelCellCoordinates cellCoordinates);
         DateTime GetCellDateTime(ExcelCellCoordinates cellCoordinates);
+        bool IsCellContainDateTime(ExcelCellCoordinates coordinates, CultureInfo cultureInfo);
     }
 }
