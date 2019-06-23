@@ -87,7 +87,7 @@ namespace DataTransferer.Lib.FileReader.Excel.ExcelDataParser
                     try
                     {
                         var nextRowCoordinates = new ExcelCellCoordinates(worksheetIndex, rowIndex, datesColumnIndex);
-                        return worksheetReader.GetCellDateTime(nextRowCoordinates) != default(DateTime);
+                        return worksheetReader.GetCellDateTimeAsUTC(nextRowCoordinates) != default(DateTime);
                     }
                     catch
                     {

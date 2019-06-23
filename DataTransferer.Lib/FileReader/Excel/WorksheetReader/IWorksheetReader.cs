@@ -10,7 +10,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
         IEnumerable<Worksheet> Worksheets { get; }
 
         string GetCellText(ExcelCellCoordinates cellCoordinates);
-        DateTime GetCellDateTime(ExcelCellCoordinates cellCoordinates);
-        bool CellAtCoordinatesContainsDateTime(ExcelCellCoordinates coordinates, CultureInfo cultureInfo);
+        DateTime GetCellDateTimeAsUTC(ExcelCellCoordinates cellCoordinates);
+        bool CellAtCoordinatesContainsDateTime(ExcelCellCoordinates coordinates);
     }
 }

@@ -11,9 +11,9 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 {
     public class WorksheetReader : IWorksheetReader
     {
-        private const string dateTimeFormat = "dd-MM-yyyy HH:mm";
+        private const string dateTimeFormat = "yyyy-MM-dd'T'HH:mm:ss.FFFK";
         private const string generalExcelCellFormat = "general";
-        private readonly CultureInfo cultureInfo = new CultureInfo("en-GB");
+        private readonly CultureInfo cultureInfo = new CultureInfo("pl-PL");
         private readonly FileInfo existingSpreadsheet;
         public WorksheetReader(string filename)
         {
@@ -41,15 +41,15 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
                 var cell = GetCellAtCoordinatesFrom(worksheets, cellCoodrinates);
 
                 if (CellNumericFormatEqualsGeneral(cell) == false &&
-                CellAtCoordinatesContainsDateTime(cellCoodrinates, new CultureInfo("en-GB")) == false)
+                CellAtCoordinatesContainsDateTime(cellCoodrinates) == false)
                 {
                     return cell.Text;
                 }
 
-                if (CellAtCoordinatesContainsDateTime(cellCoodrinates, cultureInfo))
+                if (CellAtCoordinatesContainsDateTime(cellCoodrinates))
                 {
-                    var dateTimeUTC = GetCellDateTime(cellCoodrinates).ToUniversalTime();
-                    return dateTimeUTC.ToString("yyyy-MM-ddThh:mm:ssZ");
+                    var dateTimeUTC = GetCellDateTimeAsUTC(cellCoodrinates);
+                    return dateTimeUTC.ToString(dateTimeFormat, cultureInfo);
                 }
 
                 try
@@ -62,7 +62,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
             }
         }
 
-        public bool CellAtCoordinatesContainsDateTime(ExcelCellCoordinates cellCoordinates, CultureInfo cultureInfo)
+        public bool CellAtCoordinatesContainsDateTime(ExcelCellCoordinates cellCoordinates)
         {
             using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
@@ -84,6 +84,8 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
                 try
                 {
+                    var dateLocal = DateTime.SpecifyKind(cell.GetValue<DateTime>(), DateTimeKind.Utc);
+
                     var cellDateTimeValue = cell.GetValue<DateTime>();
 
                     if (cellStringValue == cellText)
@@ -94,7 +96,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
                     var isCellStringValueOfDateTimeType = DateTime.TryParse(
                         cellStringValue,
                         cultureInfo,
-                        DateTimeStyles.AssumeLocal,
+                        DateTimeStyles.AssumeUniversal,
                         out DateTime datetimeStringValueParsedData);
 
                     var isCellTextOfDateTimeType = DateTime.TryParse(
@@ -112,7 +114,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
                     }
 
                     if ((cellStringValue.All(char.IsDigit) && datetimeTextParsedData == cellDateTimeValue) ||
-                        bothDatesHaveSameYearMonthAndDay(datetimeTextParsedData, cellDateTimeValue))
+                        BothDatesHaveSameSumOfYearMonthAndDay(datetimeTextParsedData, cellDateTimeValue))
                     {
                         return true;
                     }
@@ -126,11 +128,11 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
             }
         }
 
-        private bool bothDatesHaveSameYearMonthAndDay(DateTime date1, DateTime date2)
+        private bool BothDatesHaveSameSumOfYearMonthAndDay(DateTime date1, DateTime date2)
         {
-            return date1.Year == date2.Year &&
-                   date1.Month == date2.Month &&
-                   date1.Day == date2.Day;
+            return date1.Year + date1.Month + date1.Day ==
+                   date2.Year + date2.Month + date2.Day;
+
         }
 
         private ExcelRange GetCellAtCoordinatesFrom(ExcelWorksheets worksheets, ExcelCellCoordinates cellCoodrinates)
@@ -150,21 +152,22 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
             return cell.Style.Numberformat.Format == generalExcelCellFormat;
         }
 
-        public DateTime GetCellDateTime(ExcelCellCoordinates cellCoodrinates)
+        public DateTime GetCellDateTimeAsUTC(ExcelCellCoordinates cellCoodrinates)
         {
             using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
                 var worksheets = package.Workbook.Worksheets;
                 var cell = GetCellAtCoordinatesFrom(worksheets, cellCoodrinates);
 
-                if (CellAtCoordinatesContainsDateTime(cellCoodrinates, cultureInfo) == false)
+                if (CellAtCoordinatesContainsDateTime(cellCoodrinates) == false)
                 {
                     throw new WorksheetReaderCellValueTypeException(cell.Text, cellCoodrinates, typeof(DateTime));
                 }
 
                 try
                 {
-                    return cell.GetValue<DateTime>();
+                    var dateLocal = DateTime.SpecifyKind(cell.GetValue<DateTime>(), DateTimeKind.Utc);
+                    return dateLocal;
                 }
                 catch (FormatException e)
                 {

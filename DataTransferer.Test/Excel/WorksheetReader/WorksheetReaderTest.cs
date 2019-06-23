@@ -76,10 +76,10 @@ namespace DataTransferer.Test
 
         [Theory]
         [InlineData(0, 1, 1, "Data")]
-        [InlineData(1, 4, 1, "2017-12-04T11:00:00Z")]
-        [InlineData(1, 19, 1, "2017-12-29T11:00:00Z")]
-        [InlineData(0, 17, 1, "2012-03-08T05:15:00Z")]
-        [InlineData(0, 19, 1, "1999-06-12T11:46:27Z")]
+        [InlineData(1, 4, 1, "2017-12-05T00:00:00Z")]
+        [InlineData(1, 19, 1, "2017-12-30T00:00:00Z")]
+        [InlineData(0, 17, 1, "2012-03-08T06:15:00Z")]
+        [InlineData(0, 19, 1, "1999-06-12T13:46:27Z")]
         [InlineData(1, 20, 1, "")]
         [InlineData(0, 8, 5, "")]
         [InlineData(0, 3, 4, "119.95 zł")]
@@ -103,7 +103,7 @@ namespace DataTransferer.Test
             IWorksheetReader worksheetReader = new WorksheetReader(filepath);
 
             var cellCoordinates = new ExcelCellCoordinates(worksheetIndex, rowIndex, columnIndex);
-            var cellValue = worksheetReader.GetCellDateTime(cellCoordinates);
+            var cellValue = worksheetReader.GetCellDateTimeAsUTC(cellCoordinates);
             cellValue
                 .Should()
                 .Be(expectedCellValue);
@@ -114,13 +114,12 @@ namespace DataTransferer.Test
         [InlineData(0, 11, 1)]
         [InlineData(0, 2, 2)]
         [InlineData(0, 3, 4)]
-        [InlineData(0, 1, 5)]
         public void TryingReadingDateTimeFromCellWithAnotherDataTypeTest(int worksheetIndex, int rowIndex, int columnIndex)
         {
             IWorksheetReader worksheetReader = new WorksheetReader(filepath);
 
             var cellCoordinates = new ExcelCellCoordinates(worksheetIndex, rowIndex, columnIndex);
-            Action getCellDateTimeAction = () => worksheetReader.GetCellDateTime(cellCoordinates);
+            Action getCellDateTimeAction = () => worksheetReader.GetCellDateTimeAsUTC(cellCoordinates);
 
             getCellDateTimeAction
                 .Should()
@@ -143,7 +142,7 @@ namespace DataTransferer.Test
                 var reader = new WorksheetReader(filepath);
 
                 Action<ExcelCellCoordinates> getCellTextFunc = coordinates => reader.GetCellText(coordinates);
-                Action<ExcelCellCoordinates> getCellDateTimeFunc = coordinates => reader.GetCellDateTime(coordinates);
+                Action<ExcelCellCoordinates> getCellDateTimeFunc = coordinates => reader.GetCellDateTimeAsUTC(coordinates);
 
                 var getCellDataFuncs = new Action<ExcelCellCoordinates>[] { getCellTextFunc, getCellDateTimeFunc };
 
@@ -168,7 +167,7 @@ namespace DataTransferer.Test
                 var reader = new WorksheetReader(filepath);
 
                 Action<ExcelCellCoordinates> getCellTextFunc = coordinates => reader.GetCellText(coordinates);
-                Action<ExcelCellCoordinates> getCellDateTimeFunc = coordinates => reader.GetCellDateTime(coordinates);
+                Action<ExcelCellCoordinates> getCellDateTimeFunc = coordinates => reader.GetCellDateTimeAsUTC(coordinates);
 
                 var getCellDataFuncs = new Action<ExcelCellCoordinates>[] { getCellTextFunc, getCellDateTimeFunc };
 
@@ -201,21 +200,20 @@ namespace DataTransferer.Test
         }
 
         [Theory]
-        [InlineData(0, 4, 1, "en-GB", true)]
-        [InlineData(0, 11, 1, "en-GB", false)]
-        [InlineData(0, 13, 1, "en-GB", true)]
-        [InlineData(0, 17, 1, "en-GB", true)]
-        [InlineData(0, 19, 1, "en-GB", true)]
-        [InlineData(0, 5, 1, "en-GB", false)]
-        [InlineData(0, 1, 2, "en-GB", false)]
-        [InlineData(0, 4, 2, "en-GB", false)]
-        [InlineData(0, 2, 4, "en-GB", false)]
-        public void IsCellDateTimeTest(int worksheetIndex, int rowIndex, int columnIndex, string cultureInfo, bool expectedResult)
+        [InlineData(0, 4, 1, true)]
+        [InlineData(0, 11, 1, false)]
+        [InlineData(0, 13, 1, true)]
+        [InlineData(0, 17, 1, true)]
+        [InlineData(0, 19, 1, true)]
+        [InlineData(0, 5, 1, false)]
+        [InlineData(0, 1, 2, false)]
+        [InlineData(0, 4, 2, false)]
+        [InlineData(0, 2, 4, false)]
+        public void IsCellDateTimeTest(int worksheetIndex, int rowIndex, int columnIndex, bool expectedResult)
         {
             var reader = new WorksheetReader(filepath);
             var result = reader.CellAtCoordinatesContainsDateTime(
-                 new ExcelCellCoordinates(worksheetIndex, rowIndex, columnIndex),
-                 new CultureInfo(cultureInfo));
+                 new ExcelCellCoordinates(worksheetIndex, rowIndex, columnIndex));
 
             result
             .Should()
