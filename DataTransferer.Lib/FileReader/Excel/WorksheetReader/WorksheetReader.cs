@@ -13,6 +13,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
     {
         private const string dateTimeFormat = "dd-MM-yyyy HH:mm";
         private const string generalExcelCellFormat = "general";
+        private readonly CultureInfo cultureInfo = new CultureInfo("en-GB");
         private readonly FileInfo existingSpreadsheet;
         public WorksheetReader(string filename)
         {
@@ -39,9 +40,21 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
                 var worksheets = package.Workbook.Worksheets;
                 var cell = GetCellAtCoordinatesFrom(worksheets, cellCoodrinates);
 
+                if (CellNumericFormatEqualsGeneral(cell) == false &&
+                CellAtCoordinatesContainsDateTime(cellCoodrinates, new CultureInfo("en-GB")) == false)
+                {
+                    return cell.Text;
+                }
+
+                if (CellAtCoordinatesContainsDateTime(cellCoodrinates, cultureInfo))
+                {
+                    var dateTimeUTC = GetCellDateTime(cellCoodrinates).ToUniversalTime();
+                    return dateTimeUTC.ToString("yyyy-MM-ddThh:mm:ssZ");
+                }
+
                 try
                 {
-                    return cell.GetValue<string>();
+                    return cell.GetValue<string>() ?? "";
                 }
                 catch { }
 
@@ -49,13 +62,13 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
             }
         }
 
-        public bool IsCellContainDateTime(ExcelCellCoordinates coordinates, CultureInfo cultureInfo)
+        public bool CellAtCoordinatesContainsDateTime(ExcelCellCoordinates cellCoordinates, CultureInfo cultureInfo)
         {
             using (ExcelPackage package = new ExcelPackage(existingSpreadsheet))
             {
-                int worksheetIndex = coordinates.WorksheetIndex;
-                int rowIndex = coordinates.RowIndex;
-                int columnIndex = coordinates.ColumnIndex;
+                int worksheetIndex = cellCoordinates.WorksheetIndex;
+                int rowIndex = cellCoordinates.RowIndex;
+                int columnIndex = cellCoordinates.ColumnIndex;
                 var cell = package.Workbook.Worksheets[worksheetIndex].Cells[rowIndex, columnIndex];
 
                 var cellStringValue = cell.GetValue<string>();
@@ -143,6 +156,11 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
             {
                 var worksheets = package.Workbook.Worksheets;
                 var cell = GetCellAtCoordinatesFrom(worksheets, cellCoodrinates);
+
+                if (CellAtCoordinatesContainsDateTime(cellCoodrinates, cultureInfo) == false)
+                {
+                    throw new WorksheetReaderCellValueTypeException(cell.Text, cellCoodrinates, typeof(DateTime));
+                }
 
                 try
                 {

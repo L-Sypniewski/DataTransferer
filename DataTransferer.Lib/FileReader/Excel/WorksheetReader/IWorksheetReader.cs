@@ -11,6 +11,6 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
 
         string GetCellText(ExcelCellCoordinates cellCoordinates);
         DateTime GetCellDateTime(ExcelCellCoordinates cellCoordinates);
-        bool IsCellContainDateTime(ExcelCellCoordinates coordinates, CultureInfo cultureInfo);
+        bool CellAtCoordinatesContainsDateTime(ExcelCellCoordinates coordinates, CultureInfo cultureInfo);
     }
 }

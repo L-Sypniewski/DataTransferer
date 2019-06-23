@@ -76,11 +76,13 @@ namespace DataTransferer.Test
 
         [Theory]
         [InlineData(0, 1, 1, "Data")]
-        [InlineData(1, 4, 1, "05-12-2017 00:00")]
-        [InlineData(1, 19, 1, "30-12-2017 00:00")]
+        [InlineData(1, 4, 1, "2017-12-04T11:00:00Z")]
+        [InlineData(1, 19, 1, "2017-12-29T11:00:00Z")]
+        [InlineData(0, 17, 1, "2012-03-08T05:15:00Z")]
+        [InlineData(0, 19, 1, "1999-06-12T11:46:27Z")]
         [InlineData(1, 20, 1, "")]
-        [InlineData(0, 3, 4, "119.95 zł")]
         [InlineData(0, 8, 5, "")]
+        [InlineData(0, 3, 4, "119.95 zł")]
         [InlineData(2, 5, 2, "Bilet miesięczny")]
         [InlineData(2, 11, 3, "Fast food")]
         public void CellReadingStringDataTest(int worksheetIndex, int rowIndex, int columnIndex, string expectedCellValue)
@@ -193,27 +195,27 @@ namespace DataTransferer.Test
                 var reader = new WorksheetReader(filepath);
 
                 yield return new object[] { 0, 19, 1, new DateTime(year: 1999, month: 6, day: 12, hour: 13, minute: 46, second: 27) };
-                yield return new object[] { 0, 17, 1, new DateTime(year: 2134, month: 3, day: 8, hour: 6, minute: 15, second: 0) };
+                yield return new object[] { 0, 17, 1, new DateTime(year: 2012, month: 3, day: 8, hour: 6, minute: 15, second: 0) };
                 yield return new object[] { 0, 4, 1, new DateTime(year: 2017, month: 10, day: 25) };
             }
         }
 
         [Theory]
-        [InlineData(0, 4, 1, true)]
-        [InlineData(0, 11, 1, false)]
-        [InlineData(0, 13, 1, true)]
-        [InlineData(0, 17, 1, true)]
-        [InlineData(0, 19, 1, true)]
-        [InlineData(0, 5, 1, false)]
-        [InlineData(0, 1, 2, false)]
-        [InlineData(0, 4, 2, false)]
-        [InlineData(0, 2, 4, false)]
-        public void IsCellDateTimeTest(int worksheetIndex, int rowIndex, int columnIndex, bool expectedResult)
+        [InlineData(0, 4, 1, "en-GB", true)]
+        [InlineData(0, 11, 1, "en-GB", false)]
+        [InlineData(0, 13, 1, "en-GB", true)]
+        [InlineData(0, 17, 1, "en-GB", true)]
+        [InlineData(0, 19, 1, "en-GB", true)]
+        [InlineData(0, 5, 1, "en-GB", false)]
+        [InlineData(0, 1, 2, "en-GB", false)]
+        [InlineData(0, 4, 2, "en-GB", false)]
+        [InlineData(0, 2, 4, "en-GB", false)]
+        public void IsCellDateTimeTest(int worksheetIndex, int rowIndex, int columnIndex, string cultureInfo, bool expectedResult)
         {
             var reader = new WorksheetReader(filepath);
-            var result = reader.IsCellContainDateTime(
+            var result = reader.CellAtCoordinatesContainsDateTime(
                  new ExcelCellCoordinates(worksheetIndex, rowIndex, columnIndex),
-                 new CultureInfo("en-GB"));
+                 new CultureInfo(cultureInfo));
 
             result
             .Should()
