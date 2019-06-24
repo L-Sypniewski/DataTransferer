@@ -20,10 +20,11 @@ install:
 script:
 - dotnet sonarscanner begin /k:"Core:DataTransferer" /d:sonar.login="$SONAR_CLOUD_TOKEN" /d:sonar.exclusions="**/bin/**/*,**/obj/**/*" /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml" || true
 - dotnet build
+- coverlet DataTransferer.Test/bin/Debug/netcoreapp2.2/DataTransferer.Test.dll --target "dotnet" --targetargs "test DataTransferer.Test/DataTransferer.Test.csproj --no-build" --exclude "[xunit.*]*" --format opencover --format lcov
 - dotnet sonarscanner end /d:sonar.login="$SONAR_CLOUD_TOKEN" || true
 - dotnet test DataTransferer.Test/DataTransferer.Test.csproj
+
 after_script:
 - if [[ "$TRAVIS_OS_NAME" = "osx" ]]; then exit 0; fi
-- coverlet DataTransferer.Test/bin/Debug/netcoreapp2.2/DataTransferer.Test.dll --target "dotnet" --targetargs "test DataTransferer.Test/DataTransferer.Test.csproj --no-build" --exclude "[xunit.*]*" --format opencover --format lcov
 - tools/csmacnz.Coveralls --lcov -i coverage.info --commitId $TRAVIS_COMMIT --commitBranch $TRAVIS_BRANCH --commitAuthor "$REPO_COMMIT_AUTHOR" --commitEmail "$REPO_COMMIT_AUTHOR_EMAIL" --commitMessage "$REPO_COMMIT_MESSAGE" --jobId $TRAVIS_JOB_ID --serviceName "travis-ci" --useRelativePath --repoToken $COVERALLS_TOKEN
 - sh scripts/uploadCodecov.sh
