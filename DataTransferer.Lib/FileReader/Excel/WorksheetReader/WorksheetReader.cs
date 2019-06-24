@@ -52,13 +52,7 @@ namespace DataTransferer.Lib.FileReader.Excel.WorksheetReader
                     return dateTimeUTC.ToString(dateTimeFormat, cultureInfo);
                 }
 
-                try
-                {
-                    return cell.GetValue<string>() ?? "";
-                }
-                catch { }
-
-                return cell.Text;
+                return cell.GetValue<string>() ?? "";
             }
         }
 
