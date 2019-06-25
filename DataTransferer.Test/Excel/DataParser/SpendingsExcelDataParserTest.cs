@@ -5,89 +5,65 @@ using Moq;
 using DataTransferer.Lib.ApplicationModel.Excel;
 using System;
 using DataTransferer.Lib.FileReader.Excel.ExcelDataParser;
+using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
 
 namespace DataTransferer.Test
 {
     public class SpendingsExcelDataParserTest
     {
         const string filepath = @"TestFiles/testFile.xlsx";
-        readonly Worksheet[] worksheets = { new Worksheet(), new Worksheet(), new Worksheet(), new Worksheet() };
+        const int dateTimeColumnIndex = 1;
 
-
-        [Fact]
-        public void CheckNumberOfSpendingsThatContainDatesInARowAllInOneWorksheet()
+        [Theory]
+        [ClassData(typeof(CheckNumberOfSpendingsData))]
+        public void CheckNumberOfSpendings(
+            string @if, (int worksheetIndex, int rowIndex)[] indexesOfCellsWithValidDates, int expectedSpedningsNumber)
         {
-            var worksheetReaderMock = new Mock<IWorksheetReader>();
-
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.Worksheets).Returns(worksheets);
-
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 2, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 3, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 4, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 5, 1))).Returns(DateTime.Now);
-
-            var excelSpendingDataParser = new SpendingsExcelDataParser(worksheetReaderMock.Object);
-
+            var worksheetReaderMock = WorksheetReaderMockWithValidDatesAt(indexesOfCellsWithValidDates);
+            var excelSpendingDataParser = new SpendingsExcelDataParser(worksheetReaderMock);
 
             var spednings = excelSpendingDataParser.ParseData();
-            var expectedSpendingsCount = 4;
 
-
-            spednings.Should().HaveCount(expectedSpendingsCount);
+            spednings.Should().HaveCount(expectedSpedningsNumber, $"that's the expected number of valid spednings if {@if}");
         }
 
-        [Fact]
-        public void CheckNumberOfSpendingsThatContainDatesInARowInThreeWorksheets()
+        public class CheckNumberOfSpendingsData : IEnumerable<object[]>
         {
-            var worksheetReaderMock = new Mock<IWorksheetReader>();
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
 
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.Worksheets).Returns(worksheets);
+            public IEnumerator<object[]> GetEnumerator()
+            {
+                yield return new object[] { "all cells contanining dates are in row in 1 worksheet",
+                    new (int worksheetIndex, int rowIndex)[] { (0, 2), (0, 3), (0, 4), (0, 5) }, 4 };
 
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 2, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 3, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 4, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(1, 2, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(1, 3, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(2, 2, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(2, 3, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(2, 4, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(2, 5, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(2, 6, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(3, 2, 1))).Returns(DateTime.Now);
+                yield return new object[] { "all cells contanining dates are in row in 4 worksheets",
+                    new (int worksheetIndex, int rowIndex)[] { (0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (2, 2),
+                                                               (2, 3), (2, 4), (2, 5), (2, 6), (3, 2), }, 11 };
 
-            var excelSpendingDataParser = new SpendingsExcelDataParser(worksheetReaderMock.Object);
-
-
-            var spednings = excelSpendingDataParser.ParseData();
-            var expectedSpendingsCount = 11;
-
-
-            spednings.Should().HaveCount(expectedSpendingsCount);
+                yield return new object[] { "all cells contanining dates are with spaces in between in 1 worksheets",
+                    new (int worksheetIndex, int rowIndex)[] { (0, 2), (0, 3), (0, 6), (0, 8), (0, 9), (0, 14), (0, 15) }, 5 };
+            }
         }
 
-        [Fact]
-        public void CheckNumberOfSpendingsThatContainDatesWithSpacesBetweenInOneWorksheet()
+        private IWorksheetReader WorksheetReaderMockWithValidDatesAt(IEnumerable<(int worksheetIndex, int rowIndex)> coordinatesList)
         {
             var worksheetReaderMock = new Mock<IWorksheetReader>();
+            Worksheet[] worksheets = Enumerable.Repeat(new Worksheet(), 4).ToArray();
 
             worksheetReaderMock.Setup(worksheetReader => worksheetReader.Worksheets).Returns(worksheets);
 
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 2, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 3, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 6, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 8, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 9, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 14, 1))).Returns(DateTime.Now);
-            worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(new ExcelCellCoordinates(0, 15, 1))).Returns(DateTime.Now);
+            foreach (var indexes in coordinatesList)
+            {
+                var cellCoordinates = new ExcelCellCoordinates(indexes.worksheetIndex, indexes.rowIndex, dateTimeColumnIndex);
+                worksheetReaderMock.Setup(worksheetReader => worksheetReader.GetCellDateTimeAsUTC(cellCoordinates)).Returns(DateTime.Now);
+            }
 
-            var excelSpendingDataParser = new SpendingsExcelDataParser(worksheetReaderMock.Object);
-
-
-            var spednings = excelSpendingDataParser.ParseData();
-            var expectedSpendingsCount = 5;
-
-
-            spednings.Should().HaveCount(expectedSpendingsCount);
+            return worksheetReaderMock.Object;
         }
     }
 }
