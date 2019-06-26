@@ -8,11 +8,13 @@ using DataTransferer.Lib.FileReader.Excel.ExcelDataParser;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
+using DataTransferer.Lib.ApplicationModel;
 
 namespace DataTransferer.Test
 {
     using RowsAndColumnsIndexes = List<(int worksheetIndex, int rowIndex)>;
-    using CoordinatesWithDataEnumerable = IEnumerable<(ExcelCellCoordinates cellCoordinates, object objectAtCell)>;
+    using CoordinatesWithDataList = List<(ExcelCellCoordinates cellCoordinates, object cellData)>;
+    using Spendings = List<Spending>;
 
     public class SpendingsExcelDataParserTest
     {
@@ -71,17 +73,21 @@ namespace DataTransferer.Test
 
         [Theory]
         [ClassData(typeof(ParsingValidSpendingsData))]
-        public void ParsingValidSpendingsTest(CoordinatesWithDataEnumerable coordinatesWithData)
+        public void ParsingValidSpendingsTest(CoordinatesWithDataList coordinatesWithData, Spendings expectedSpendings)
         {
             var worksheetReaderMock = WorksheetReaderMockWithValidSpendingsDataAt(coordinatesWithData);
             var excelSpendingDataParser = new SpendingsExcelDataParser(worksheetReaderMock);
 
-            var spednings = excelSpendingDataParser.ParseData();
+            var sortedSpenings = excelSpendingDataParser.ParseData().ToList();
+            sortedSpenings.Sort();
 
+            var sortedExpectedSpendings = expectedSpendings;
+            sortedExpectedSpendings.Sort();
 
+            sortedSpenings.Should().Equal(excelSpendingDataParser);
         }
 
-        private IWorksheetReader WorksheetReaderMockWithValidSpendingsDataAt(CoordinatesWithDataEnumerable coordinatesWithData)
+        private IWorksheetReader WorksheetReaderMockWithValidSpendingsDataAt(CoordinatesWithDataList coordinatesWithData)
         {
             var worksheetReaderMock = new Mock<IWorksheetReader>();
 
@@ -93,21 +99,21 @@ namespace DataTransferer.Test
 
             foreach (var dataAtCoordinates in coordinatesWithData)
             {
-                var objectAtCell = dataAtCoordinates.objectAtCell;
+                var cellData = dataAtCoordinates.cellData;
                 var cellCoordinates = dataAtCoordinates.cellCoordinates;
-                if (objectAtCell is string stringData)
+                if (cellData is string stringData)
                 {
                     worksheetReaderMock.Setup(worksheetReader =>
                       worksheetReader.GetCellText(cellCoordinates)).Returns(stringData);
                 }
-                else if (objectAtCell is DateTime dateTimeData)
+                else if (cellData is DateTime dateTimeData)
                 {
                     worksheetReaderMock.Setup(worksheetReader =>
                      worksheetReader.GetCellDateTimeAsUTC(cellCoordinates)).Returns(dateTimeData);
                 }
                 else
                 {
-                    throw new ArgumentException($"Unsupported type for worksheetReader to read: type equals {objectAtCell.GetType()}");
+                    throw new ArgumentException($"Unsupported type for worksheetReader to read: type equals {cellData.GetType()}");
                 }
             }
 
@@ -124,15 +130,20 @@ namespace DataTransferer.Test
 
             public IEnumerator<object[]> GetEnumerator()
             {
-                yield return new object[] { "all cells contanining dates are in row in 1 worksheet",
-                    new (int worksheetIndex, int rowIndex)[] { (0, 2), (0, 3), (0, 4), (0, 5) }, 4 };
+                var coordinatesWithDataList = new CoordinatesWithDataList {
+                    (new ExcelCellCoordinates(1, 3, 1), new DateTime(2017, 12, 4)),
+                    (new ExcelCellCoordinates(1, 3, 2), "Coca Cola"),
+                    (new ExcelCellCoordinates(1, 3, 3), "Jedzenie"),
+                    (new ExcelCellCoordinates(1, 3, 4), "5.99 zł"),
+                };
 
-                yield return new object[] { "all cells contanining dates are in row in 4 worksheets",
-                    new (int worksheetIndex, int rowIndex)[] { (0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (2, 2),
-                                                               (2, 3), (2, 4), (2, 5), (2, 6), (3, 2), }, 11 };
+                var expectedParsedSpendings = new Spendings
+                {
+                    new Spending(new DateTime(2017, 12, 4), "Coca Cola", "Jedzenie", 5.99m, Currency.PLN),
+                };
 
-                yield return new object[] { "all cells contanining dates are with spaces in between in 1 worksheets",
-                    new (int worksheetIndex, int rowIndex)[] { (0, 2), (0, 3), (0, 6), (0, 8), (0, 9), (0, 14), (0, 15) }, 5 };
+
+                yield return new object[] { coordinatesWithDataList, expectedParsedSpendings };
             }
         }
     }
