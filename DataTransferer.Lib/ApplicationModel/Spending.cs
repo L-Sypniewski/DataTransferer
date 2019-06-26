@@ -8,6 +8,6 @@ namespace DataTransferer.Lib.ApplicationModel
         string Name;
         string Category;
         Decimal Amount;
-        string Currency;
+        Currency Currency;
     }
 }
