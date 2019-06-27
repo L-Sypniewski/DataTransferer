@@ -5,6 +5,7 @@ using DataTransferer.Lib.ApplicationModel;
 using DataTransferer.Lib.ApplicationModel.Excel;
 using DataTransferer.Lib.FileReader.DataParser;
 using DataTransferer.Lib.FileReader.Excel.WorksheetReader;
+using System.Text.RegularExpressions;
 
 namespace DataTransferer.Lib.FileReader.Excel.ExcelDataParser
 {
@@ -12,6 +13,9 @@ namespace DataTransferer.Lib.FileReader.Excel.ExcelDataParser
     {
         private readonly IWorksheetReader worksheetReader;
         private const int datesColumnIndex = 1;
+        private const int productsColumnIndex = 2;
+        private const int categoriesColumnIndex = 3;
+        private const int amountColumnIndex = 4;
         private const int firstDateRowIndex = 2;
         private const int maxNumberOfEmptyRowsInBetween = 3;
 
@@ -22,34 +26,59 @@ namespace DataTransferer.Lib.FileReader.Excel.ExcelDataParser
 
         public IEnumerable<Spending> ParseData()
         {
-            var datesRowNumbers = new List<Spending>();
+            var parsedSpendings = new List<Spending>();
             var worksheetsCount = worksheetReader.Worksheets.Count();
 
             for (int worksheetIndex = 0; worksheetIndex < worksheetsCount; worksheetIndex++)
             {
-                var firstDateCellCoordinates = new ExcelCellCoordinates(worksheetIndex, firstDateRowIndex, datesColumnIndex);
+                var firstCellWithDateCoordinates = new ExcelCellCoordinates(worksheetIndex, firstDateRowIndex, datesColumnIndex);
                 var rowIndexesContainingDates = GetRowIndexesContainingDates(
                     worksheetReader,
-                    firstDateCellCoordinates,
+                    firstCellWithDateCoordinates,
                     maxNumberOfEmptyRowsInBetween);
 
-                for (int rowIndex = firstDateRowIndex; rowIndex < firstDateRowIndex + rowIndexesContainingDates.Count(); rowIndex++)
+
+                var lastRowIndexToCheck = rowIndexesContainingDates.Count() != 0 ? rowIndexesContainingDates.Max() + maxNumberOfEmptyRowsInBetween : firstDateRowIndex;
+                for (int rowIndex = firstDateRowIndex; rowIndex < lastRowIndexToCheck; rowIndex++)
                 {
-                    datesRowNumbers.Add(new Spending());
+                    var dateCellCoordinates = new ExcelCellCoordinates(worksheetIndex, rowIndex, datesColumnIndex);
+                    var parsedDate = worksheetReader.GetCellDateTimeAsUTC(dateCellCoordinates);
+
+                    if (parsedDate == default(DateTime))
+                    {
+                        continue;
+                    }
+
+                    var productCellCoordinates = new ExcelCellCoordinates(worksheetIndex, rowIndex, productsColumnIndex);
+                    var parsedProduct = worksheetReader.GetCellText(productCellCoordinates);
+
+                    var categoryCellCoordinates = new ExcelCellCoordinates(worksheetIndex, rowIndex, categoriesColumnIndex);
+                    var parsedCategory = worksheetReader.GetCellText(categoryCellCoordinates);
+
+                    var amountCellCoordinates = new ExcelCellCoordinates(worksheetIndex, rowIndex, amountColumnIndex);
+                    var parsedAmount = worksheetReader.GetCellText(amountCellCoordinates);
+                    var amountWithoutCurrencyCharacters = Regex.Replace(parsedAmount, "[^0-9.]", "");
+                    var convertedAmount = Decimal.Parse(amountWithoutCurrencyCharacters, System.Globalization.NumberStyles.Currency);
+
+                    var parsedCurrency = GetCurrencyFromString(parsedAmount);
+
+                    var parsedSpending = new Spending(parsedDate, parsedProduct, parsedCategory, convertedAmount, parsedCurrency);
+
+                    parsedSpendings.Add(parsedSpending);
                 }
             }
 
-            return datesRowNumbers;
+            return parsedSpendings;
         }
 
         private IEnumerable<int> GetRowIndexesContainingDates(
             IWorksheetReader worksheetReader,
-            ExcelCellCoordinates firstDateCellCoordinates,
+            ExcelCellCoordinates firstCellWithDateCoordinates,
             int maxNumberOfEmptyRowsInBetween)
         {
-            var firstDatesRowIndex = firstDateCellCoordinates.RowIndex;
-            var datesColumnIndex = firstDateCellCoordinates.ColumnIndex;
-            var worksheetIndex = firstDateCellCoordinates.WorksheetIndex;
+            var firstDatesRowIndex = firstCellWithDateCoordinates.RowIndex;
+            var datesColumnIndex = firstCellWithDateCoordinates.ColumnIndex;
+            var worksheetIndex = firstCellWithDateCoordinates.WorksheetIndex;
 
             var rowNumbersContainingDates = new HashSet<int>();
             for (int currentRowIndex = firstDatesRowIndex; ; currentRowIndex++)
@@ -64,8 +93,13 @@ namespace DataTransferer.Lib.FileReader.Excel.ExcelDataParser
                 }
                 rowNumbersContainingDates.UnionWith(nextRowIndexesContainingDates.ToHashSet());
             }
-            
+
             return rowNumbersContainingDates;
+        }
+
+        private Currency GetCurrencyFromString(string cellStringValue)
+        {
+            return Currency.PLN;
         }
 
         private IEnumerable<int> GetNextRowIndexesContainingDates(

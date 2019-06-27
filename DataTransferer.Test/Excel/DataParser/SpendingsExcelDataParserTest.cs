@@ -78,13 +78,13 @@ namespace DataTransferer.Test
             var worksheetReaderMock = WorksheetReaderMockWithValidSpendingsDataAt(coordinatesWithData);
             var excelSpendingDataParser = new SpendingsExcelDataParser(worksheetReaderMock);
 
-            var sortedSpenings = excelSpendingDataParser.ParseData().ToList();
-            sortedSpenings.Sort();
+            var sortedSpendings = excelSpendingDataParser.ParseData().ToList();
+            sortedSpendings.Sort();
 
             var sortedExpectedSpendings = expectedSpendings;
             sortedExpectedSpendings.Sort();
 
-            sortedSpenings.Should().Equal(excelSpendingDataParser);
+            sortedSpendings.Should().Equal(excelSpendingDataParser);
         }
 
         private IWorksheetReader WorksheetReaderMockWithValidSpendingsDataAt(CoordinatesWithDataList coordinatesWithData)
@@ -93,8 +93,10 @@ namespace DataTransferer.Test
 
             var numberOfWorksheets = coordinatesWithData
                 .Select(x => x.cellCoordinates.WorksheetIndex)
-                .Max();
+                .Max() + 1;
             Worksheet[] worksheets = Enumerable.Repeat(new Worksheet(), numberOfWorksheets).ToArray();
+
+            worksheetReaderMock.Setup(worksheetReader => worksheetReader.Worksheets).Returns(worksheets);
 
 
             foreach (var dataAtCoordinates in coordinatesWithData)
